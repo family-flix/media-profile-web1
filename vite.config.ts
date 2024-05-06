@@ -6,20 +6,7 @@ import solidPlugin from "vite-plugin-solid";
 const config = defineConfig(({ mode }) => {
   return {
     base: "/profile",
-    plugins: [
-      solidPlugin(),
-      {
-        name: "singleHMR",
-        handleHotUpdate({ modules }) {
-          modules.map((m) => {
-            // @ts-ignore
-            m.importedModules = new Set();
-            m.importers = new Set();
-          });
-          return modules;
-        },
-      },
-    ],
+    plugins: [solidPlugin()],
     resolve: {
       alias: {
         "hls.js": "hls.js/dist/hls.min.js",
