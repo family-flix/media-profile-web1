@@ -334,7 +334,7 @@ export async function searchMediaInTMDB(params: Partial<FetchParams> & { keyword
 export type TheMediaInTMDB = RequestedResource<typeof searchMediaInTMDB>["list"][0];
 
 /** 刷新电视剧详情 */
-export function refreshMediaProfile(body: { media_id: string; douban_id?: string }) {
-  const { media_id, douban_id } = body;
-  return client.post<{ job_id: string }>("/api/v2/media_profile/refresh", { media_id, douban_id });
+export function refreshMediaProfile(body: { media_id: string; douban_id?: string; override?: number }) {
+  const { media_id, douban_id, override } = body;
+  return client.post<{ job_id: string }>("/api/v2/media_profile/refresh", { media_id, douban_id, override });
 }

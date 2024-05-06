@@ -258,7 +258,9 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
         });
         return;
       }
-      const r = await refreshProfileRequest.run({ media_id: cur.id, douban_id: v });
+      $doubanDialog.okBtn.setLoading(true);
+      const r = await refreshProfileRequest.run({ media_id: cur.id, douban_id: v, override: 1 });
+      $doubanDialog.okBtn.setLoading(false);
       if (r.error) {
         app.tip({
           text: [r.error.message],
