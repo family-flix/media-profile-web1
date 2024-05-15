@@ -8,9 +8,10 @@ import { Skeleton, ScrollView } from "@/components/ui";
 import { ScrollViewCore } from "@/domains/ui/index";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { request } from "@/domains/request/utils";
+import { MediaRankSource } from "@/constants/index";
 
 function fetchMediaRank() {
-  return request.post<{
+  return request.get<{
     status: boolean;
     dataList: {
       list: {
@@ -85,7 +86,7 @@ function fetchMediaRank() {
       /** 选择的时间 */
       selectDate: string;
     };
-  }>("/profile_api/v1/media_rank");
+  }>("/profile_api/v1/media_rank", { source: MediaRankSource.Maoyan });
 }
 
 export const MediaRankPage: ViewComponent = (props) => {
