@@ -46,13 +46,13 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
   });
   const editMediaRequest = new RequestCore(setMediaProfileName, {
     onLoading(loading) {
-      dialog.okBtn.setLoading(loading);
+      profileEditDialog.okBtn.setLoading(loading);
     },
     onSuccess(r) {
       app.tip({
         text: ["编辑成功"],
       });
-      dialog.hide();
+      profileEditDialog.hide();
     },
     onFailed(error) {
       app.tip({
@@ -170,10 +170,10 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
       history.push("root.home_layout.profile", { id: record.id });
     },
   });
-  const editBtn = new ButtonInListCore<MediaProfileItem>({
+  const profileEditBtn = new ButtonInListCore<MediaProfileItem>({
     onClick(record) {
       seasonRef.select(record);
-      dialog.show();
+      profileEditDialog.show();
     },
   });
   const $doubanBtn = new ButtonInListCore<MediaProfileItem>({
@@ -183,7 +183,7 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
     },
   });
   const values = new MediaProfileValuesCore();
-  const dialog = new DialogCore({
+  const profileEditDialog = new DialogCore({
     title: "编辑详情",
     onOk() {
       const media = seasonRef.value;
@@ -479,7 +479,7 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
                                   更新详情
                                 </Button>
                                 <Button
-                                  store={editBtn.bind(season)}
+                                  store={profileEditBtn.bind(season)}
                                   variant="subtle"
                                   icon={<BookOpen class="w-4 h-4" />}
                                 >
@@ -512,7 +512,7 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
           </div>
         </div>
       </ScrollView>
-      <Dialog store={dialog}>
+      <Dialog store={profileEditDialog}>
         <div class="w-[520px]">
           <MediaProfileValues store={values} />
         </div>

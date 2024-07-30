@@ -205,7 +205,7 @@ export function editMediaProfile(body: { id: string; name?: string; source_count
 export function setMediaProfileName(body: { id: string; name: string; original_name?: string }) {
   const { id, name, original_name } = body;
   return request1.post<ListResponse<void>>("/api/v2/media_profile/set_name", {
-    id,
+    media_id: id,
     name,
     original_name,
   });
