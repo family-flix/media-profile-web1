@@ -1,19 +1,18 @@
 import { JSX } from "solid-js/jsx-runtime";
 
-import { Application } from "@/domains/app";
-import { HistoryCore } from "@/domains/history";
 import { RouteViewCore } from "@/domains/route_view";
 import { ScrollViewCore } from "@/domains/ui";
 import { StorageCore } from "@/domains/storage";
 import { HttpClientCore } from "@/domains/http_client";
 
-import { PageKeys, RouteConfig } from "./routes";
+import { app, history } from ".";
+import { PageKeys } from "./routes";
 import { storage } from "./storage";
 
 export type GlobalStorageValues = (typeof storage)["values"];
 export type ViewComponentProps = {
-  app: Application;
-  history: HistoryCore<PageKeys, RouteConfig>;
+  app: typeof app;
+  history: typeof history;
   client: HttpClientCore;
   view: RouteViewCore;
   storage: StorageCore<GlobalStorageValues>;

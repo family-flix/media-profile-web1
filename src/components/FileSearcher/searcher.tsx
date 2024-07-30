@@ -12,8 +12,9 @@ import { FileSearcherCore } from "./store";
 export const FileSearcher = (props: { store: FileSearcherCore } & JSX.HTMLAttributes<HTMLElement>) => {
   const { store } = props;
   const scrollView = new ScrollViewCore({
-    onReachBottom() {
-      store.$list.loadMore();
+    async onReachBottom() {
+      await store.$list.loadMore();
+      scrollView.finishLoadingMore();
     },
   });
   const [state, setState] = createSignal(store.state);
@@ -21,7 +22,8 @@ export const FileSearcher = (props: { store: FileSearcherCore } & JSX.HTMLAttrib
     setState(nextState);
   });
 
-  const dataSource = () => state().list.dataSource;
+  // const dataSource = () => state().list.dataSource;
+  const dataSource = () => [];
 
   return (
     <div>
@@ -46,7 +48,7 @@ export const FileSearcher = (props: { store: FileSearcherCore } & JSX.HTMLAttrib
       </div>
       <ListView store={store.$list}>
         <div class="relative">
-          <ScrollView store={scrollView} class="relative max-h-[360px] overflow-y-auto p-2 space-y-2">
+          {/* <ScrollView store={scrollView} class="relative max-h-[360px] overflow-y-auto p-2 space-y-2">
             <For each={dataSource()}>
               {(file) => {
                 const { name, parent_paths, drive } = file;
@@ -62,7 +64,7 @@ export const FileSearcher = (props: { store: FileSearcherCore } & JSX.HTMLAttrib
                 );
               }}
             </For>
-          </ScrollView>
+          </ScrollView> */}
         </div>
       </ListView>
     </div>

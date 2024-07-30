@@ -6,7 +6,7 @@ import { createSignal, For, onMount, Show } from "solid-js";
 import { ViewComponent } from "@/store/types";
 import { Skeleton, ScrollView } from "@/components/ui";
 import { ScrollViewCore } from "@/domains/ui/index";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request/index";
 import { request } from "@/domains/request/utils";
 import { MediaRankSource } from "@/constants/index";
 
@@ -92,13 +92,10 @@ function fetchMediaRank() {
 export const MediaRankPage: ViewComponent = (props) => {
   const { app, history, client, view } = props;
 
-  const $list = new RequestCoreV2({
-    fetch: fetchMediaRank,
+  const $list = new RequestCore(fetchMediaRank, {
     client,
   });
-  const scrollView = new ScrollViewCore({
-    pullToRefresh: false,
-  });
+  const scrollView = new ScrollViewCore({});
 
   const [state, setState] = createSignal($list.state);
 

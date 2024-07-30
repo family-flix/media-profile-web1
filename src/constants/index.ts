@@ -1,74 +1,12 @@
-export const code = `const oo = document;
-const jj = JSON;
-const ll = localStorage;
-function m() {
-    const DEVICE_ID_KEY_IN_COOKIE = "cna";
-    const user = jj.parse(ll.getItem("token") || "null");
-    if (user === null) {
-        alert("请先登录");
-        return;
-    }
-    const cookies = pp(oo.cookie);
-    const device_id = cookies[DEVICE_ID_KEY_IN_COOKIE];
-    if (!device_id) {
-        alert("请先登录");
-        return;
-    }
-    const {access_token, avatar, default_drive_id, expire_time, nick_name, refresh_token, user_id, user_name, } = user;
-    const result = {
-        app_id: window.Global.app_id,
-        drive_id: default_drive_id,
-        device_id,
-        user_id,
-        nick_name,
-        user_name,
-        avatar,
-        access_token,
-        refresh_token,
-    };
-    const result_str = jj.stringify(result);
-    cc(result_str);
-    console.log("云盘信息已复制到粘贴板，请粘贴到新增云盘处");
-    return result_str;
-}
-function pp(cookie_str) {
-    if (!cookie_str) {
-        return {};
-    }
-    const result = {};
-    const key_and_values = cookie_str.split("; ");
-    for (let i = 0; i < key_and_values.length; i += 1) {
-        const [key,value] = key_and_values[i].split("=");
-        result[key] = value;
-    }
-    return result;
-}
-function cc(str) {
-    const textArea = oo.createElement("textarea");
-    textArea.value = str;
-    oo.body.appendChild(textArea);
-    textArea.select();
-    oo.execCommand("copy");
-    oo.body.removeChild(textArea);
-}
-m();`;
-
-const code_prefix = "";
-// esbuild index.js --outfile=dist/index.js --format=cjs --bundle --minify
-// 压缩后的代码
-export const code_get_drive_token = `${code_prefix}var o=document,i=JSON,m=localStorage;function k(){let t="cna",e=i.parse(m.getItem("token")||"null");if(e===null){alert("\u8BF7\u5148\u767B\u5F55");return}let n=v(o.cookie)[t];if(!n){alert("请先登录");return}let{access_token:r,avatar:s,default_drive_id:a,expire_time:g,nick_name:u,refresh_token:d,user_id:_,user_name:p}=e,f={app_id:window.Global.app_id,drive_id:a,device_id:n,user_id:_,nick_name:u,user_name:p,avatar:s,access_token:r,refresh_token:d},l=i.stringify(f);return y(l),console.log("云盘信息已复制到粘贴板，请粘贴到新增云盘处"),l}function v(t){if(!t)return{};let e={},c=t.split("; ");for(let n=0;n<c.length;n+=1){let[r,s]=c[n].split("=");e[r]=s}return e}function y(t){let e=o.createElement("textarea");e.value=t,o.body.appendChild(e),e.select(),o.execCommand("copy"),o.body.removeChild(e)}k();`;
-
 export enum FileType {
   File = 1,
   Folder = 2,
 }
-
 export enum DriveFileType {
   File = 1,
   Folder = 2,
   Unknown = 3,
 }
-
 /**
  * @doc https://www.iso.org/standard/63545.html
  */

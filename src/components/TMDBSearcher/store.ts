@@ -1,8 +1,8 @@
-import { TheMediaInTMDB } from "@/services/media_profile";
+import { TheMediaInTMDB } from "@/biz/services/media_profile";
 import { ButtonCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { Response } from "@/domains/list/typing";
-import { TMDBSearcherCore } from "@/domains/tmdb";
+import { TMDBSearcherCore } from "@/biz/tmdb";
 import { MediaTypes } from "@/constants";
 
 enum Events {

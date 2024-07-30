@@ -6,7 +6,7 @@ import { For, Show, createSignal } from "solid-js";
 import { ViewComponent } from "@/store/types";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { TmpRequestResp, request } from "@/domains/request/utils";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request/index";
 
 function search_media(values: { url: string }) {
   const { url } = values;
@@ -69,25 +69,17 @@ type MediaProfileSearchProps = {
 
 class MediaProfileSearchCore {
   $client: HttpClientCore;
-  $search: RequestCoreV2<{
-    fetch: typeof search_media;
-    client: HttpClientCore;
-  }>;
-  $profile: RequestCoreV2<{
-    fetch: typeof fetch_season_profile;
-    client: HttpClientCore;
-  }>;
+  $search: RequestCore<typeof search_media>;
+  $profile: RequestCore<typeof fetch_season_profile>;
 
   constructor(props: MediaProfileSearchProps) {
     const { client } = props;
 
     this.$client = client;
-    this.$search = new RequestCoreV2({
-      fetch: search_media,
+    this.$search = new RequestCore(search_media, {
       client: this.$client,
     });
-    this.$profile = new RequestCoreV2({
-      fetch: fetch_season_profile,
+    this.$profile = new RequestCore(fetch_season_profile, {
       client: this.$client,
     });
   }

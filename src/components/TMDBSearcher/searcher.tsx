@@ -8,15 +8,15 @@ import { Button, Input, LazyImage, Label, ListView, ScrollView, Dialog } from "@
 import * as Form from "@/components/ui/form";
 import { Presence } from "@/components/ui/presence";
 import { TabHeader } from "@/components/ui/tab-header";
-import { MediaSearchView } from "@/components/MediaSelect";
-import { TabHeaderCore } from "@/domains/ui/tab-header";
-import { TMDBSearcherCore } from "@/domains/tmdb";
+// import { MediaSearchView } from "@/components/MediaSelect";
+import { prepareEpisodeList, prepareSeasonList } from "@/biz/services/media_profile";
+import { TMDBSearcherCore } from "@/biz/tmdb";
+import { MediaSearchCore } from "@/biz/media_search";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { cn } from "@/utils";
 import { DialogCore, ImageInListCore, PresenceCore } from "@/domains/ui";
-import { MediaSearchCore } from "@/domains/media_search";
+import { TabHeaderCore } from "@/domains/ui/tab-header";
 import { MediaTypes } from "@/constants";
-import { prepareEpisodeList, prepareSeasonList } from "@/services/media_profile";
+import { cn } from "@/utils";
 
 export const TMDBSearcherView = (props: { store: TMDBSearcherCore } & JSX.HTMLAttributes<HTMLElement>) => {
   const { store } = props;
@@ -44,7 +44,7 @@ export const TMDBSearcherView = (props: { store: TMDBSearcherCore } & JSX.HTMLAt
     },
   });
   const searchPanel = new PresenceCore({
-    open: true,
+    visible: true,
   });
   const seasonPanel = new PresenceCore();
   const episodePanel = new PresenceCore();
@@ -52,39 +52,37 @@ export const TMDBSearcherView = (props: { store: TMDBSearcherCore } & JSX.HTMLAt
   const mediaSearch = new MediaSearchCore({
     type: MediaTypes.Season,
     async onSelect(value) {
-      if (store.needEpisode) {
-        if (!value) {
-          return;
-        }
-        store.select(value);
-        const r = await prepareEpisodeList({
-          media_id: value.id,
-        });
-        if (r.error) {
-          store.tip({
-            text: ["获取剧集失败", r.error.message],
-          });
-          return;
-        }
-        seasonPanel.hide();
-        episodePanel.show();
-        setEpisodes(r.data.list);
-        return;
-      }
-      if (value) {
-        store.select(value);
-        return;
-      }
-      store.unSelect();
+      // if (store.needEpisode) {
+      //   if (!value) {
+      //     return;
+      //   }
+      //   store.select(value);
+      //   const r = await prepareEpisodeList({
+      //     media_id: value.id,
+      //   });
+      //   if (r.error) {
+      //     store.tip({
+      //       text: ["获取剧集失败", r.error.message],
+      //     });
+      //     return;
+      //   }
+      //   seasonPanel.hide();
+      //   episodePanel.show();
+      //   setEpisodes(r.data.list);
+      //   return;
+      // }
+      // if (value) {
+      //   store.select(value);
+      //   return;
+      // }
+      // store.unSelect();
     },
   });
   const poster = new ImageInListCore({});
   const scrollView = new ScrollViewCore({
-    // onScroll(pos) {
-    //   console.log('scroll', pos);
-    // },
-    onReachBottom() {
-      store.$list.loadMore();
+    async onReachBottom() {
+      await store.$list.loadMore();
+      scrollView.finishLoadingMore();
     },
   });
 
@@ -164,25 +162,25 @@ export const TMDBSearcherView = (props: { store: TMDBSearcherCore } & JSX.HTMLAt
                   <div
                     class={cn("p-2", media.id === cur()?.id ? "bg-slate-300" : "bg-white")}
                     onClick={async () => {
-                      if (type === MediaTypes.Season) {
-                        searchPanel.hide();
-                        seasonPanel.show();
-                        const r = await prepareSeasonList({ series_id: String(id) });
-                        if (r.error) {
-                          return;
-                        }
-                        // @ts-ignore
-                        mediaSearch.$list.modifyResponse((v) => {
-                          return {
-                            ...v,
-                            initial: false,
-                            dataSource: [...r.data.list],
-                            noMore: !r.data.next_marker,
-                          };
-                        });
-                        return;
-                      }
-                      store.toggle(media);
+                      // if (type === MediaTypes.Season) {
+                      //   searchPanel.hide();
+                      //   seasonPanel.show();
+                      //   const r = await prepareSeasonList({ series_id: String(id) });
+                      //   if (r.error) {
+                      //     return;
+                      //   }
+                      //   // @ts-ignore
+                      //   mediaSearch.$list.modifyResponse((v) => {
+                      //     return {
+                      //       ...v,
+                      //       initial: false,
+                      //       dataSource: [...r.data.list],
+                      //       noMore: !r.data.next_marker,
+                      //     };
+                      //   });
+                      //   return;
+                      // }
+                      // store.toggle(media);
                     }}
                   >
                     <div class="flex">
@@ -218,7 +216,7 @@ export const TMDBSearcherView = (props: { store: TMDBSearcherCore } & JSX.HTMLAt
           </ListView>
         </ScrollView>
       </Presence>
-      <Presence
+      {/* <Presence
         classList={{
           "opacity-100": true,
           "animate-in slide-in-from-right": true,
@@ -227,7 +225,7 @@ export const TMDBSearcherView = (props: { store: TMDBSearcherCore } & JSX.HTMLAt
         store={seasonPanel}
       >
         <MediaSearchView store={mediaSearch} />
-      </Presence>
+      </Presence> */}
       <Presence
         classList={{
           "opacity-100": true,

@@ -4,17 +4,18 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 import { ArrowLeft, Play, Trash } from "lucide-solid";
 
-import { MediaSourceItem, SeasonMediaProfile, fetchSeasonMediaProfile, setMediaProfile } from "@/services/media";
-import { deleteParsedMediaSource } from "@/services/parsed_media";
+import { ViewComponent } from "@/store/types";
+import { appendAction } from "@/store/actions";
 import {
-  fetchEpisodesOfSeason,
-  EpisodeItemInSeason,
-  deleteSeason,
-  SeasonInTVProfile,
-  refreshSeasonProfile,
-} from "@/services";
-import { Button, ContextMenu, ScrollView, Skeleton, Dialog, LazyImage, ListView, Input } from "@/components/ui";
-import { TMDBSearcherDialog, TMDBSearcherView } from "@/components/TMDBSearcher";
+  MediaEpisodeItem,
+  MediaProfile,
+  fetchMediaFilePreview,
+  fetchMediaProfile,
+  setMediaProfile,
+} from "@/biz/services/media";
+import { deleteParsedMediaSource } from "@/biz/services/parsed_media";
+import { TMDBSearcherCore } from "@/biz/tmdb";
+import { Button, ScrollView, Skeleton, Dialog, LazyImage, ListView, Input } from "@/components/ui";
 import {
   MenuItemCore,
   ContextMenuCore,
@@ -28,130 +29,24 @@ import {
 import { RequestCore } from "@/domains/request";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
-import { TMDBSearcherCore } from "@/domains/tmdb";
-import { createJob } from "@/store/job";
-import { appendAction } from "@/store/actions";
-import { ViewComponent } from "@/store/types";
 import { bytes_to_size, cn } from "@/utils";
 
-export const SeasonProfilePage: ViewComponent = (props) => {
-  const { app, history, view } = props;
+export const MediaProfilePage: ViewComponent = (props) => {
+  const { app, history, client, view } = props;
 
-  const profileRequest = new RequestCore(fetchSeasonMediaProfile, {
+  const profileRequest = new RequestCore(fetchMediaProfile, {
+    client,
     onSuccess(v) {
       poster.setURL(v.poster_path);
       setProfile(v);
     },
     onFailed(error) {
-      app.tip({ text: ["获取电视剧详情失败", error.message] });
+      app.tip({ text: ["获取详情失败", error.message] });
     },
   });
-  const sourceDeletingRequest = new RequestCore(deleteParsedMediaSource, {
-    onLoading(loading) {
-      fileDeletingConfirmDialog.okBtn.setLoading(loading);
-    },
-    onSuccess() {
-      const theEpisode = episodeRef.value;
-      const theSource = fileRef.value;
-      if (!theEpisode || !theSource) {
-        app.tip({
-          text: ["删除成功，请刷新页面"],
-        });
-        return;
-      }
-      setProfile((prev) => {
-        if (prev === null) {
-          return null;
-        }
-        const { episodes, ...rest } = prev;
-        return {
-          ...rest,
-          episodes: episodes.map((episode) => {
-            if (episode.id !== theEpisode.id) {
-              return episode;
-            }
-            return {
-              ...episode,
-              sources: episode.sources.filter((source) => {
-                if (source.id !== theSource.id) {
-                  return true;
-                }
-                return false;
-              }),
-            };
-          }),
-        };
-      });
-      fileDeletingConfirmDialog.hide();
-      app.tip({
-        text: ["删除成功"],
-      });
-    },
-    onFailed(error) {
-      app.tip({
-        text: ["删除视频源失败", error.message],
-      });
-    },
-  });
-  const curEpisodeList = new ListCore(new RequestCore(fetchEpisodesOfSeason), {
-    search: {
-      tv_id: view.query.id,
-      season_id: view.query.season_id,
-    },
-  });
-  const seasonDeletingRequest = new RequestCore(deleteSeason, {
-    onLoading(loading) {
-      seasonDeletingConfirmDialog.okBtn.setLoading(loading);
-    },
-    onFailed(error) {
-      app.tip({
-        text: ["删除失败", error.message],
-      });
-    },
-    onSuccess() {
-      app.tip({
-        text: ["删除成功"],
-      });
-      appendAction("deleteTV", {
-        tv_id: view.query.id,
-        id: view.query.season_id,
-      });
-      seasonDeletingConfirmDialog.hide();
-      history.back();
-    },
-  });
-  const seasonProfileChangeRequest = new RequestCore(setMediaProfile, {
-    onLoading(loading) {
-      dialog.okBtn.setLoading(loading);
-    },
-    onSuccess() {
-      app.tip({ text: ["更新详情成功"] });
-      profileRequest.reload();
-    },
-  });
-  const seasonProfileRefreshRequest = new RequestCore(refreshSeasonProfile, {
-    onSuccess(r) {
-      createJob({
-        job_id: r.job_id,
-        onFinish() {
-          app.tip({ text: ["刷新详情成功"] });
-          profileRequest.reload();
-          profileRefreshBtn.setLoading(false);
-        },
-      });
-    },
-    onFailed(error) {
-      app.tip({
-        text: ["刷新详情失败", error.message],
-      });
-      profileRefreshBtn.setLoading(false);
-    },
-  });
-  const tmpSeasonRef = new RefCore<SeasonInTVProfile>();
-  const seasonRef = new RefCore<SeasonInTVProfile>();
-  const episodeRef = new RefCore<MediaSourceItem>();
-  const fileRef = new RefCore<EpisodeItemInSeason["sources"][number]>();
-  // const curParsedTV = new SelectionCore<TVProfile["parsed_tvs"][number]>();
+  const previewRequest = new RequestCore(fetchMediaFilePreview);
+  const episodeRef = new RefCore<MediaEpisodeItem>();
+  // const fileRef = new RefCore<EpisodeItemInSeason["sources"][number]>();
   const searcher = new TMDBSearcherCore();
   const dialog = new DialogCore({
     onOk() {
@@ -166,14 +61,14 @@ export const SeasonProfilePage: ViewComponent = (props) => {
         return;
       }
       dialog.okBtn.setLoading(true);
-      seasonProfileChangeRequest.run({
-        media_id: id,
-        media_profile: {
-          id: String(media.id),
-          type: media.type,
-          name: media.name,
-        },
-      });
+      // seasonProfileChangeRequest.run({
+      //   media_id: id,
+      //   media_profile: {
+      //     id: String(media.id),
+      //     type: media.type,
+      //     name: media.name,
+      //   },
+      // });
     },
   });
   const profileChangeBtn = new ButtonCore({
@@ -189,8 +84,8 @@ export const SeasonProfilePage: ViewComponent = (props) => {
       app.tip({
         text: ["开始刷新"],
       });
-      profileRefreshBtn.setLoading(true);
-      seasonProfileRefreshRequest.run({ season_id: view.query.season_id });
+      // profileRefreshBtn.setLoading(true);
+      // seasonProfileRefreshRequest.run({ season_id: view.query.season_id });
     },
   });
   const seasonDeletingBtn = new ButtonCore({
@@ -201,44 +96,20 @@ export const SeasonProfilePage: ViewComponent = (props) => {
       // seasonDeletingConfirmDialog.show();
     },
   });
-  const seasonDeletingConfirmDialog = new DialogCore({
-    title: "删除季",
-    onOk() {
-      if (!seasonRef.value) {
-        app.tip({
-          text: ["请先选择要删除的季"],
-        });
-        return;
-      }
-      seasonDeletingRequest.run({
-        season_id: seasonRef.value.id,
-      });
-    },
-  });
-  const deleteSeasonMenuItem = new MenuItemCore({
-    label: "删除",
-    async onClick() {
-      seasonDeletingConfirmDialog.show();
-      seasonContextMenu.hide();
-    },
-  });
   const fileDeletingConfirmDialog = new DialogCore({
     title: "删除视频源",
     onOk() {
-      const theSource = fileRef.value;
-      if (!theSource) {
-        app.tip({
-          text: ["请先选择要删除的源"],
-        });
-        return;
-      }
-      sourceDeletingRequest.run({
-        parsed_media_source_id: theSource.id,
-      });
+      // const theSource = fileRef.value;
+      // if (!theSource) {
+      //   app.tip({
+      //     text: ["请先选择要删除的源"],
+      //   });
+      //   return;
+      // }
+      // sourceDeletingRequest.run({
+      //   parsed_media_source_id: theSource.id,
+      // });
     },
-  });
-  const seasonContextMenu = new ContextMenuCore({
-    items: [deleteSeasonMenuItem],
   });
   // const profileTitleInput = new InputCore({
   //   defaultValue: "",
@@ -271,22 +142,18 @@ export const SeasonProfilePage: ViewComponent = (props) => {
   //     });
   //   },
   // });
-  const scrollView = new ScrollViewCore({
-    onReachBottom() {
-      curEpisodeList.loadMore();
-    },
-  });
+  const scrollView = new ScrollViewCore({});
   const poster = new ImageCore({});
   const seriesPoster = new ImageInListCore({});
 
-  const [profile, setProfile] = createSignal<SeasonMediaProfile | null>(null);
-  const [curEpisodeResponse, setCurEpisodeResponse] = createSignal(curEpisodeList.response);
-  const [curSeason, setCurSeason] = createSignal(seasonRef.value);
+  const [profile, setProfile] = createSignal<MediaProfile | null>(null);
+  // const [curEpisodeResponse, setCurEpisodeResponse] = createSignal(curEpisodeList.response);
+  // const [curSeason, setCurSeason] = createSignal(mediaRef.value);
   const [sizeCount, setSizeCount] = createSignal<string | null>(null);
 
-  seasonRef.onStateChange((nextState) => {
-    setCurSeason(nextState);
-  });
+  // mediaRef.onStateChange((nextState) => {
+  //   setCurSeason(nextState);
+  // });
   // curEpisodeList.onStateChange((nextResponse) => {
   //   const sourceSizeCount = nextResponse.dataSource.reduce((count, cur) => {
   //     const curCount = cur.sources.reduce((total, cur) => {
@@ -306,7 +173,7 @@ export const SeasonProfilePage: ViewComponent = (props) => {
   // });
 
   onMount(() => {
-    profileRequest.run({ season_id: view.query.id });
+    profileRequest.run({ media_id: view.query.id });
   });
 
   return (
@@ -371,42 +238,69 @@ export const SeasonProfilePage: ViewComponent = (props) => {
               </div>
               <div class="relative z-3 mt-4">
                 <div class="flex items-center space-x-4 whitespace-nowrap">
-                  {/* <Button store={profileUpdateBtn}>修改详情</Button> */}
-                  <Button store={profileChangeBtn}>变更详情</Button>
                   <Button store={profileRefreshBtn}>刷新详情</Button>
                   <Button store={seasonDeletingBtn}>删除季</Button>
                 </div>
                 <div class="space-y-4 mt-8">
                   <For each={profile()?.episodes}>
                     {(episode) => {
-                      const { id, name, episode_number, runtime, sources } = episode;
+                      const { id, name, still_path, overview, order: episode_number, files, subtitles } = episode;
                       return (
                         <div title={id}>
                           <div class="text-lg">
                             {episode_number}、{name}
-                            <Show when={runtime}>
-                              <span class="text-gray-500 text-sm">({runtime}min)</span>
-                            </Show>
+                            <img class="w-[68px] h-[38px] object-cover" src={still_path} />
                           </div>
                           <div class="pl-4 space-y-1">
-                            <For each={sources}>
-                              {(source) => {
-                                const { id, file_name, parent_paths, drive } = source;
+                            <For each={files}>
+                              {(file) => {
+                                const { id, file_name } = file;
                                 return (
                                   <div class="flex items-center space-x-4 text-slate-500">
-                                    <span class="break-all" title={`[${drive.name}]${parent_paths}/${file_name}`}>
-                                      [{drive.name}]{parent_paths}/{file_name}
+                                    <span class="break-all" title={`${file_name}`}>
+                                      {file_name}
                                     </span>
                                     <div class="flex items-center space-x-2">
                                       <div
                                         class="p-1 cursor-pointer"
                                         title="播放"
-                                        onClick={() => {
-                                          // mediaPlayingPage.query = {
-                                          //   id,
-                                          // };
-                                          // app.showView(mediaPlayingPage);
-                                          // history.push("root.preview", { id });
+                                        onClick={async () => {
+                                          const p = profile();
+                                          if (!p) {
+                                            return;
+                                          }
+                                          const r = await previewRequest.run({ id });
+                                          if (r.error) {
+                                            return null;
+                                          }
+                                          const subtitle = await (async () => {
+                                            if (subtitles.length !== 0) {
+                                              return subtitles[0];
+                                            }
+                                            if (r.data.subtitles.length === 0) {
+                                              return null;
+                                            }
+                                            return r.data.subtitles[0];
+                                          })();
+                                          appendAction("pendingSubtitle", {
+                                            media: {
+                                              id: p.id,
+                                              name: p.name,
+                                              original_name: p.original_name,
+                                              order: p.order,
+                                              poster_path: p.poster_path,
+                                            },
+                                            episode: {
+                                              id,
+                                              order: episode_number,
+                                              name,
+                                              still_path,
+                                              overview,
+                                              url: r.data.url,
+                                            },
+                                            subtitle,
+                                          });
+                                          history.push("root.home_layout.editor");
                                         }}
                                       >
                                         <Play class="w-4 h-4" />
@@ -416,7 +310,6 @@ export const SeasonProfilePage: ViewComponent = (props) => {
                                         title="删除源"
                                         onClick={() => {
                                           episodeRef.select(episode);
-                                          fileRef.select(source);
                                           fileDeletingConfirmDialog.show();
                                         }}
                                       >
@@ -433,70 +326,12 @@ export const SeasonProfilePage: ViewComponent = (props) => {
                     }}
                   </For>
                 </div>
-                <div class="mt-4 flex w-full pb-4 overflow-x-auto space-x-4">
-                  <For each={profile()?.series}>
-                    {(season) => {
-                      const { id, name, poster_path, air_date } = season;
-                      // const url = history.buildURLWithPrefix("root.home_layout.season_profile", { id });
-                      const url = "";
-                      // const url = homeTVProfilePage.buildUrlWithPrefix({
-                      //   id,
-                      // });
-                      return (
-                        <div>
-                          <a href={url} target="_blank">
-                            <div>
-                              <LazyImage class="w-[120px]" store={seriesPoster.bind(poster_path)} />
-                            </div>
-                          </a>
-                          <div class="text-xl whitespace-nowrap">{name}</div>
-                          <div class="">{air_date}</div>
-                        </div>
-                      );
-                    }}
-                  </For>
-                </div>
               </div>
             </div>
           </Show>
         </div>
         <div class="h-[120px]"></div>
       </ScrollView>
-      <Dialog title="设置电视详情" store={dialog}>
-        <div class="w-[520px]">
-          <TMDBSearcherView store={searcher} />
-        </div>
-      </Dialog>
-      {/* <Dialog store={profileManualUpdateDialog}>
-        <div class="w-[520px]">
-          <div class="space-y-4">
-            <div class="space-y-1">
-              <div>标题</div>
-              <Input store={profileTitleInput} />
-            </div>
-            <div class="space-y-1">
-              <div>集数</div>
-              <Input store={profileEpisodeCountInput} />
-            </div>
-          </div>
-        </div>
-      </Dialog> */}
-      <Dialog store={seasonDeletingConfirmDialog}>
-        <div class="w-[520px]">
-          <div class="text-lg">确认删除「{curSeason()?.name}」吗？</div>
-          <div class="mt-4 text-slate-800">
-            <div>该仅删除本地索引记录，不影响实际文件</div>
-            <div>如需删除云盘文件请到云盘详情页操作</div>
-          </div>
-        </div>
-      </Dialog>
-      <Dialog store={fileDeletingConfirmDialog}>
-        <div class="w-[520px]">
-          <div>该操作仅删除解析结果</div>
-          <div>不影响云盘内文件</div>
-        </div>
-      </Dialog>
-      <ContextMenu store={seasonContextMenu} />
     </>
   );
 };

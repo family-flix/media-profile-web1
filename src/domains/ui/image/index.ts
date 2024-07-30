@@ -14,9 +14,6 @@ type TheTypesOfEvents = {
   [Events.Loaded]: void;
   [Events.Error]: void;
 };
-const prefix = window.location.origin;
-// const prefix = "https://img.funzm.com";
-// const DEFAULT_IMAGE1 = prefix + "/placeholder.png";
 export enum ImageStep {
   Pending,
   Loading,
@@ -44,6 +41,7 @@ type ImageState = Omit<ImageProps, "scale"> & {
 };
 
 export class ImageCore extends BaseDomain<TheTypesOfEvents> {
+  static prefix = "";
   static url(url?: string | null) {
     if (!url) {
       return "";
@@ -51,10 +49,10 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
     if (url.includes("http")) {
       return url;
     }
-    return prefix + url;
+    return ImageCore.prefix + url;
   }
 
-  unique_id: unknown;
+  unique_uid: unknown;
   src: string;
   width: number;
   height: number;
@@ -87,12 +85,19 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
       this.scale = scale;
     }
     if (unique_id) {
-      this.unique_id = unique_id;
+      this.unique_uid = unique_id;
     }
   }
 
-  setURL(src: string | null) {
-    if (src === null) {
+  setURL(src?: string | null) {
+    console.log("[DOMAIN]ui/image setURL", this.realSrc, this.src, src, this.step);
+    if (!src) {
+      return;
+    }
+    if (this.realSrc && src !== this.realSrc) {
+      this.realSrc = src;
+      // 这里就是修改图片地址
+      this.handleShow();
       return;
     }
     this.realSrc = src;
@@ -104,7 +109,7 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 图片进入可视区域 */
   handleShow() {
-    // console.log("[IMAGE_CORE]handleShow", this.realSrc);
+    // console.log("[DOMAIN]ui/image - handleShow", this.realSrc);
     if (!this.realSrc) {
       this.step = ImageStep.Failed;
       this.emit(Events.StateChange, { ...this.state });

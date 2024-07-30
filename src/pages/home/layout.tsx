@@ -37,6 +37,11 @@ export const MediaProfileHomeLayout: ViewComponent = (props) => {
       url: "root.home_layout.index",
     },
     {
+      text: "字幕",
+      icon: <Search class="w-6 h-6" />,
+      url: "root.home_layout.subtitle_list",
+    },
+    {
       text: "抓取",
       icon: <Search class="w-6 h-6" />,
       url: "root.home_layout.search",
@@ -116,7 +121,7 @@ export const MediaProfileHomeLayout: ViewComponent = (props) => {
 
 function Menu(
   props: {
-    app: Application;
+    app: ViewComponentProps["app"];
     history: ViewComponentProps["history"];
     highlight?: boolean;
     url?: PageKeys;

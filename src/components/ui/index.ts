@@ -16,6 +16,6 @@ export * from "./image";
 export * from "./back-to-top";
 export * from "./checkbox-group";
 export * from "./list-view";
-export * from "./video";
+// export * from "./video";
 export * from "./label";
 // export * from "./toast";

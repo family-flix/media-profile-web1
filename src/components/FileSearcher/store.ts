@@ -1,4 +1,4 @@
-import { FileItem, searchDriveFiles } from "@/services/drive";
+import { FileItem, searchDriveFiles } from "@/biz/services/drive";
 import { ButtonCore, DialogCore, InputCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { Response } from "@/domains/list/typing";
@@ -18,7 +18,7 @@ type TheTypesOfEvents = {
 };
 type FileSearcherDialogState = {
   value: null | FileItem;
-  list: Response<FileItem>;
+  // list: Response<FileItem>;
   showFooter: boolean;
 };
 type FileSearcherDialogProps = {
@@ -49,7 +49,7 @@ export class FileSearcherCore extends BaseDomain<TheTypesOfEvents> {
   get state(): FileSearcherDialogState {
     return {
       value: null,
-      list: this.$list.response,
+      // list: this.$list.response,
       showFooter: true,
     };
   }
@@ -94,7 +94,7 @@ export class FileSearcherCore extends BaseDomain<TheTypesOfEvents> {
     this.okBtn = this.$dialog.okBtn;
     this.cancelBtn = this.$dialog.cancelBtn;
     this.$list.onStateChange((nextState) => {
-      this.state.list = nextState;
+      // this.state.list = nextState;
       this.emit(Events.StateChange, { ...this.state });
     });
   }

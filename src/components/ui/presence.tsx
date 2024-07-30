@@ -28,7 +28,7 @@ export const Presence = (
   //   console.log(3);
   // });
 
-  const open = () => state().open;
+  const open = () => state().visible;
   const mounted = () => state().mounted;
 
   return (

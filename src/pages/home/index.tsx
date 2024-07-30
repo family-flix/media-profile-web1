@@ -5,17 +5,18 @@ import { createSignal, For, onMount, Show } from "solid-js";
 import { Award, Send, BookOpen, Calendar, RotateCw, Search, SlidersHorizontal, Train } from "lucide-solid";
 
 import { ViewComponent } from "@/store/types";
-import { createJob } from "@/store/job";
 import { pendingActions, consumeAction } from "@/store/actions";
 import {
   fetchMediaProfileList,
+  fetchMediaProfileListProcess,
   fetchPartialMediaProfile,
   MediaProfileItem,
   deleteMediaProfile,
   editMediaProfile,
   refreshMediaProfile,
-} from "@/services/media_profile";
-import { refreshSeasonProfiles } from "@/services/index";
+  fetchPartialMediaProfileProcess,
+  setMediaProfileName,
+} from "@/biz/services/media_profile";
 import { Skeleton, Popover, ScrollView, Input, Button, Dialog, BackToTop, ListView } from "@/components/ui";
 import { MediaProfileValues, MediaProfileValuesCore } from "@/components/MediaProfileValues";
 import {
@@ -25,27 +26,25 @@ import {
   InputCore,
   ButtonCore,
   ButtonInListCore,
-  CheckboxCore,
   CheckboxGroupCore,
 } from "@/domains/ui";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { RefCore } from "@/domains/cur/index";
-import { Result } from "@/types/index";
-import { MediaSourceOptions, MediaTypes, TVGenresOptions } from "@/constants/index";
-import { cn } from "@/utils/index";
+import { Result } from "@/domains/result/index";
+import { MediaTypes, TVGenresOptions } from "@/constants/index";
 
 export const MediaProfileManagePage: ViewComponent = (props) => {
   const { app, history, view } = props;
 
-  const $list = new ListCore(new RequestCore(fetchMediaProfileList), {
+  const $list = new ListCore(new RequestCore(fetchMediaProfileList, { process: fetchMediaProfileListProcess }), {
     onLoadingChange(loading) {
       searchBtn.setLoading(loading);
       resetBtn.setLoading(loading);
       refreshBtn.setLoading(loading);
     },
   });
-  const editMediaRequest = new RequestCore(editMediaProfile, {
+  const editMediaRequest = new RequestCore(setMediaProfileName, {
     onLoading(loading) {
       dialog.okBtn.setLoading(loading);
     },
@@ -61,7 +60,7 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
       });
     },
   });
-  const partialMediaRequest = new RequestCore(fetchPartialMediaProfile);
+  const partialMediaRequest = new RequestCore(fetchPartialMediaProfile, { process: fetchPartialMediaProfileProcess });
   const refreshProfileRequest = new RequestCore(refreshMediaProfile, {
     onSuccess(r) {
       refreshProfileBtn.setLoading(false);
@@ -74,29 +73,7 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
       });
     },
   });
-  const refreshSeasonProfilesRequest = new RequestCore(refreshSeasonProfiles, {
-    beforeRequest() {
-      refreshSeasonListBtn.setLoading(true);
-    },
-    async onSuccess(r) {
-      createJob({
-        job_id: r.job_id,
-        onFinish() {
-          app.tip({ text: ["更新成功"] });
-          $list.refresh();
-          refreshSeasonListBtn.setLoading(false);
-        },
-      });
-    },
-    onFailed(error) {
-      app.tip({ text: ["更新失败", error.message] });
-      refreshSeasonListBtn.setLoading(false);
-    },
-  });
   const mediaDeleteRequest = new RequestCore(deleteMediaProfile, {
-    onLoading(loading) {
-      refreshSeasonListBtn.setLoading(loading);
-    },
     onSuccess() {
       app.tip({
         text: ["删除成功"],
@@ -113,15 +90,6 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
     },
   });
   const seasonRef = new RefCore<MediaProfileItem>();
-  const sourceCheckboxGroup = new CheckboxGroupCore({
-    options: MediaSourceOptions,
-    onChange(options) {
-      setHasSearch(!!options.length);
-      $list.search({
-        language: options.join("|"),
-      });
-    },
-  });
   const tvGenresCheckboxGroup = new CheckboxGroupCore({
     options: TVGenresOptions,
     onChange(options) {
@@ -197,6 +165,11 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
       refreshProfileRequest.run({ media_id: record.id });
     },
   });
+  const profileBtn = new ButtonInListCore<MediaProfileItem>({
+    onClick(record) {
+      history.push("root.home_layout.profile", { id: record.id });
+    },
+  });
   const editBtn = new ButtonInListCore<MediaProfileItem>({
     onClick(record) {
       seasonRef.select(record);
@@ -220,11 +193,18 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
         });
         return;
       }
-      const value = values.validate();
+      const r = values.validate();
+      if (r.error) {
+        app.tip({
+          text: [r.error.message],
+        });
+        return;
+      }
+      const value = r.data;
       editMediaRequest.run({
         id: media.id,
         name: value.name,
-        source_count: value.episodeCount,
+        original_name: value.originalName,
       });
     },
   });
@@ -234,12 +214,6 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
       mediaDeleteRequest.run({
         id: record.id,
       });
-    },
-  });
-  const refreshSeasonListBtn = new ButtonCore({
-    onClick() {
-      app.tip({ text: ["开始更新"] });
-      refreshSeasonProfilesRequest.run();
     },
   });
   const $doubanDialog = new DialogCore({
@@ -295,9 +269,9 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
     },
   });
   const scrollView = new ScrollViewCore({
-    pullToRefresh: false,
-    onReachBottom() {
-      $list.loadMore();
+    async onReachBottom() {
+      await $list.loadMore();
+      scrollView.finishLoadingMore();
     },
     onScroll() {
       tipPopover.hide();
@@ -490,6 +464,13 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
                                   variant="subtle"
                                   icon={<RotateCw class="w-4 h-4" />}
                                 ></Button>
+                                <Button
+                                  store={profileBtn.bind(season)}
+                                  variant="subtle"
+                                  icon={<BookOpen class="w-4 h-4" />}
+                                >
+                                  详情
+                                </Button>
                                 <Button
                                   store={refreshProfileBtn.bind(season)}
                                   variant="subtle"
