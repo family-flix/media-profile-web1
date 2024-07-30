@@ -102,7 +102,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
 
   push(
     name: K,
-    query: Record<string, string | number> = {},
+    query: Record<string, string> = {},
     options: Partial<{
       /** 不变更 history stack */
       ignore: boolean;
