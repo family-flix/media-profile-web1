@@ -202,12 +202,18 @@ export function editMediaProfile(body: { id: string; name?: string; source_count
 /**
  * 编辑影视剧的译名和原始名称
  */
-export function setMediaProfileName(body: { id: string; name: string; original_name?: string }) {
-  const { id, name, original_name } = body;
+export function setMediaProfileName(body: {
+  id: string;
+  name: string;
+  original_name?: string;
+  auto_season_name?: boolean;
+}) {
+  const { id, name, original_name, auto_season_name } = body;
   return request1.post<ListResponse<void>>("/api/v2/media_profile/set_name", {
     media_id: id,
     name,
     original_name,
+    auto_season_name,
   });
 }
 /**

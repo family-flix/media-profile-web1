@@ -205,6 +205,7 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
         id: media.id,
         name: value.name,
         original_name: value.originalName,
+        auto_season_name: true
       });
     },
   });
