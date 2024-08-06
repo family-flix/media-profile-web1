@@ -8,7 +8,8 @@ import { MediaProfileCatchPage } from "@/pages/home/catch";
 import { MediaRankPage } from "@/pages/home/rank";
 import { MediaProfilePage } from "@/pages/home/profile";
 import { LoginPage } from "@/pages/login";
-import { SubtitleListPage } from "@/pages/home/subtitle/list";
+// import { SubtitleListPage } from "@/pages/home/subtitle/list";
+import { SubtitleListPage } from "@/pages/home/subtitle/list_v2";
 import { SubtitleProfilePage } from "@/pages/home/subtitle/profile";
 import { SubtitleEditorPage } from "@/pages/home/editor";
 

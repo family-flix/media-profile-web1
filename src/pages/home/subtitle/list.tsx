@@ -43,10 +43,14 @@ export const SubtitleListPage: ViewComponent = (props) => {
           {(subtitle) => {
             return (
               <div
+              class="bg-white"
                 onClick={() => {
                   history.push("root.home_layout.subtitle_profile", { id: String(subtitle.id) });
                 }}
               >
+                <div class="p-2">
+
+                </div>
                 <div>{subtitle.title}</div>
               </div>
             );

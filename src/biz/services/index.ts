@@ -611,38 +611,45 @@ export function batchUploadSubtitles(values: {
   }
   return request1.post<{ job_id: string }>("/api/v2/admin/subtitle/batch_create", body);
 }
-export function fetchSubtitleList(params: FetchParams) {
+export function fetchMediaList(params: FetchParams) {
   const { page, pageSize } = params;
   return request1.post<
     ListResponse<{
-      id: string;
-      type: MediaTypes;
-      name: string;
-      poster_path: string;
-      sources: {
-        id: string;
+      id: number;
+      title: string;
+      original_name: string;
+      order: number;
+      poster: string;
+      unique_id: string;
+      episodes: {
+        id: number;
         name: string;
         order: number;
+        overview: string;
+        still_path: string;
+        unique_id: string;
         subtitles: {
-          id: string;
-          type: number;
-          unique_id: string;
+          id: number;
+          created_at: string;
+          updated_at: string;
+          title: string;
+          suffix: string;
           language: string;
         }[];
       }[];
     }>
-  >("/api/v2/admin/subtitle/list", {
+  >("/api/v1/media/list", {
     page,
     page_size: pageSize,
   });
 }
-export type SubtitleItem = NonNullable<UnpackedResult<TmpRequestResp<typeof fetchSubtitleList>>>["list"][number];
+export type SubtitleItem = NonNullable<UnpackedResult<TmpRequestResp<typeof fetchMediaList>>>["list"][number];
 /**
  * 删除指定影视剧下的所有字幕？
  */
-export function deleteSubtitle(values: { subtitle_id: string }) {
+export function deleteSubtitle(values: { subtitle_id: number }) {
   const { subtitle_id } = values;
-  return request1.post("/api/v2/admin/subtitle/delete", {
+  return request1.post("/api/v1/subtitle/delete", {
     subtitle_id,
   });
 }

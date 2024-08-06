@@ -414,6 +414,7 @@ export const MediaProfileManagePage: ViewComponent = (props) => {
                                   <a href={url}>{name}</a>
                                 </h2>
                               </div>
+                              <div class="mt-2 text-sm">{id}</div>
                               <div class="mt-2 overflow-hidden text-ellipsis">
                                 <p class="text-slate-700 break-all whitespace-pre-wrap truncate line-clamp-3">
                                   {overview}
